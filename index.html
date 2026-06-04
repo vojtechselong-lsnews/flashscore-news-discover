@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flashscore Football in Discover – Market Analysis (Last 6 Months)</title>
+<style>
+  :root { --orange:#f47920; --orange-light:#fef3ea; --dark:#1a1a2e; --text:#1f1f2e; --muted:#6b7280; --border:#e5e7eb; --white:#fff; --rank-bg:#f3f4f6; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:'Segoe UI',system-ui,sans-serif; background:#f8f9fb; color:var(--text); min-height:100vh; }
+  header { background:linear-gradient(135deg,var(--dark) 0%,#16213e 100%); color:white; padding:20px 28px; display:flex; align-items:center; gap:14px; }
+  header h1 { font-size:1.3rem; font-weight:700; }
+  header p { font-size:0.82rem; color:#9ca3af; margin-top:3px; }
+  .fs-logo { width:34px; height:34px; background:var(--orange); border-radius:8px; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:0.95rem; color:white; flex-shrink:0; }
+  .layout { display:flex; height:calc(100vh - 77px); }
+  .sidebar { width:188px; flex-shrink:0; background:var(--white); border-right:1px solid var(--border); overflow-y:auto; padding:12px 0; }
+  .sidebar-label { font-size:0.68rem; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.08em; padding:0 14px 8px; }
+  .market-btn { display:flex; align-items:center; gap:8px; width:100%; padding:9px 14px; border:none; background:none; cursor:pointer; font-size:0.85rem; color:var(--text); text-align:left; border-left:3px solid transparent; transition:all .12s; }
+  .market-btn:hover { background:var(--orange-light); color:var(--orange); }
+  .market-btn.active { background:var(--orange-light); color:var(--orange); border-left-color:var(--orange); font-weight:600; }
+  .main { flex:1; overflow-y:auto; padding:22px 28px; }
+  .market-panel { display:none; }
+  .market-panel.active { display:block; }
+  .market-title { font-size:1.4rem; font-weight:700; margin-bottom:3px; }
+  .market-subtitle { color:var(--muted); font-size:0.82rem; margin-bottom:16px; }
+  .toggle-wrap { display:flex; align-items:center; gap:10px; margin-bottom:18px; flex-wrap:wrap; }
+  .toggle-label { font-size:0.8rem; color:var(--muted); font-weight:500; }
+  .toggle-group { display:flex; border:1px solid var(--border); border-radius:8px; overflow:hidden; }
+  .toggle-btn { padding:7px 14px; border:none; background:var(--white); cursor:pointer; font-size:0.8rem; color:var(--muted); transition:all .12s; white-space:nowrap; }
+  .toggle-btn.active { background:var(--orange); color:white; font-weight:600; }
+  .toggle-btn:hover:not(.active) { background:var(--orange-light); color:var(--orange); }
+  .mode-note { font-size:0.73rem; color:var(--muted); }
+  .grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; }
+  @media (max-width:1100px) { .grid-3 { grid-template-columns:1fr 1fr; } }
+  @media (max-width:720px) { .grid-3 { grid-template-columns:1fr; } .sidebar { display:none; } }
+  .card { background:var(--white); border-radius:10px; border:1px solid var(--border); overflow:hidden; }
+  .card-header { padding:12px 16px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:8px; }
+  .card-icon { width:28px; height:28px; border-radius:7px; display:flex; align-items:center; justify-content:center; font-size:0.9rem; flex-shrink:0; }
+  .card-icon.people { background:#ede9fe; } .card-icon.comps { background:#d1fae5; } .card-icon.teams { background:#dbeafe; }
+  .card-title { font-size:0.85rem; font-weight:600; }
+  .rank-list { padding:6px 0; }
+  .rank-item { display:flex; align-items:center; gap:10px; padding:6px 16px; transition:background .1s; }
+  .rank-item:hover { background:#f9fafb; }
+  .rank-num { width:22px; height:22px; border-radius:50%; background:var(--rank-bg); display:flex; align-items:center; justify-content:center; font-size:0.68rem; font-weight:700; color:var(--muted); flex-shrink:0; }
+  .rank-num.top3 { background:var(--orange); color:white; }
+  .rank-name { font-size:0.83rem; color:var(--text); }
+  .rank-moved { font-size:0.68rem; margin-left:4px; }
+  .moved-up { color:#16a34a; } .moved-down { color:#dc2626; } .moved-same { color:var(--muted); }
+  #summary-panel { display:none; }
+  #summary-panel.active { display:block; }
+  .search-wrap { margin-bottom:20px; display:flex; gap:10px; align-items:center; }
+  .search-input { padding:8px 13px; border:1px solid var(--border); border-radius:8px; font-size:0.85rem; width:260px; outline:none; transition:border-color .12s; }
+  .search-input:focus { border-color:var(--orange); }
+  .summary-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:16px; margin-top:8px; }
+  .summary-card { background:var(--white); border-radius:10px; border:1px solid var(--border); padding:16px; cursor:pointer; transition:box-shadow .12s,border-color .12s; }
+  .summary-card:hover { box-shadow:0 4px 20px rgba(0,0,0,.08); border-color:var(--orange); }
+  .summary-card h3 { font-size:0.95rem; font-weight:700; margin-bottom:10px; }
+  .summary-top { font-size:0.75rem; color:var(--muted); margin-bottom:3px; font-weight:500; }
+  .summary-names { font-size:0.78rem; color:var(--text); line-height:1.55; }
+  .pill { display:inline-block; background:var(--orange-light); color:var(--orange); font-size:0.68rem; font-weight:600; padding:2px 7px; border-radius:99px; }
+  .content-note { font-size:0.72rem; color:var(--muted); font-style:italic; margin-top:4px; }
+</style>
+</head>
+<body>
+<header>
+  <div class="fs-logo">FS</div>
+  <div>
+    <h1>Football in Google Discover — Market Analysis</h1>
+    <p>Top entities driving organic traffic across Flashscore editions · Last 6 months</p>
+  </div>
+</header>
+<div class="layout">
+  <nav class="sidebar">
+    <div class="sidebar-label">Markets</div>
+    <button class="market-btn active" onclick="showMarket('summary')"><span>🌍</span> All Markets</button>
+    <button class="market-btn" onclick="showMarket('COM')"><span>🌐</span> COM (Global)</button>
+    <button class="market-btn" onclick="showMarket('UK')"><span>🇬🇧</span> UK</button>
+    <button class="market-btn" onclick="showMarket('IT')"><span>🇮🇹</span> Italy</button>
+    <button class="market-btn" onclick="showMarket('FR')"><span>🇫🇷</span> France</button>
+    <button class="market-btn" onclick="showMarket('ES')"><span>🇪🇸</span> Spain</button>
+    <button class="market-btn" onclick="showMarket('PT')"><span>🇵🇹</span> Portugal</button>
+    <button class="market-btn" onclick="showMarket('BR')"><span>🇧🇷</span> Brazil</button>
+    <button class="market-btn" onclick="showMarket('DE')"><span>🇩🇪</span> Germany</button>
+    <button class="market-btn" onclick="showMarket('PL')"><span>🇵🇱</span> Poland</button>
+    <button class="market-btn" onclick="showMarket('CZ')"><span>🇨🇿</span> Czech Rep.</button>
+    <button class="market-btn" onclick="showMarket('SK')"><span>🇸🇰</span> Slovakia</button>
+    <button class="market-btn" onclick="showMarket('RO')"><span>🇷🇴</span> Romania</button>
+  </nav>
+  <main class="main">
+    <div id="summary-panel" class="active">
+      <div class="market-title">All Markets Overview</div>
+      <p class="market-subtitle">Click a market card for details. Each market has three ranking methods: by article count, by click volume, and by content analysis (actual article text).</p>
+      <div class="search-wrap">
+        <input class="search-input" id="global-search" type="text" placeholder="Search player, team or competition…" oninput="globalSearch(this.value)" />
+        <span id="search-results-count" style="font-size:0.78rem;color:var(--muted);"></span>
+      </div>
+      <div id="search-results" style="display:none; margin-bottom:20px;"></div>
+      <div class="summary-grid" id="summary-grid"></div>
+    </div>
+    <div id="market-panels"></div>
+  </main>
+</div>
+<script>
+const MARKETS = {
+  COM:{name:"Flashscore.com — Global (EN)",flag:"🌐"},
+  UK:{name:"Flashscore.co.uk — United Kingdom",flag:"🇬🇧"},
+  IT:{name:"Diretta.it — Italy",flag:"🇮🇹"},
+  FR:{name:"Flashscore.fr — France",flag:"🇫🇷"},
+  ES:{name:"Flashscore.es — Spain",flag:"🇪🇸"},
+  PT:{name:"Flashscore.pt — Portugal",flag:"🇵🇹"},
+  BR:{name:"Flashscore.com.br — Brazil",flag:"🇧🇷"},
+  DE:{name:"Flashscore.de — Germany",flag:"🇩🇪"},
+  PL:{name:"Flashscore.pl — Poland",flag:"🇵🇱"},
+  CZ:{name:"Livesport.cz — Czech Republic",flag:"🇨🇿"},
+  SK:{name:"Flashscore.sk — Slovakia",flag:"🇸🇰"},
+  RO:{name:"Flashscore.ro — Romania",flag:"🇷🇴"},
+};
+
+// ── BY ARTICLE COUNT ──────────────────────────────────────────────────────
+const DATA_COUNT = {
+  COM:{persons:["Pep Guardiola","Mohamed Salah","Mikel Arteta","Lionel Messi","José Mourinho","Luis Enrique","Arne Slot","Declan Rice","Cristiano Ronaldo","Kylian Mbappé","Harry Kane","Erling Haaland","Hansi Flick","Hugo Broos","Neymar Jr.","Bukayo Saka","Carlo Ancelotti","Lamine Yamal","Unai Emery","Marcus Rashford","Thomas Tuchel","Ousmane Dembélé","Anthony Gordon","Julian Nagelsmann","Massimiliano Allegri"],competitions:["Premier League","World Cup","Champions League","Betway Premiership (SA)","LaLiga","Africa Cup of Nations","Serie A","FA Cup","Eredivisie","EFL Championship"],teams:["Manchester City","Inter Milan","Atlético Madrid","Paris Saint-Germain","FC Barcelona","Real Madrid","Manchester United","Kaizer Chiefs","Bafana Bafana (SA NT)","Mamelodi Sundowns"]},
+  UK:{persons:["Pep Guardiola","Mohamed Salah","Arne Slot","Mikel Arteta","Harry Kane","Thomas Tuchel","Erling Haaland","Declan Rice","Bukayo Saka","Lionel Messi","José Mourinho","Kylian Mbappé","Rodri","Cole Palmer","Ousmane Dembélé","Anthony Gordon","Virgil van Dijk","Florian Wirtz","Lamine Yamal","Unai Emery","Vinícius Jr.","Jürgen Klopp","Cristiano Ronaldo","Hansi Flick","Dominik Szoboszlai"],competitions:["Premier League","Champions League","FA Cup","World Cup","EFL Championship","LaLiga","Scottish Premiership","Europa League","Africa Cup of Nations","Serie A"],teams:["Manchester City","Manchester United","Inter Milan","Paris Saint-Germain","Atlético Madrid","West Ham United","Real Madrid","Aston Villa","FC Barcelona","Celtic"]},
+  IT:{persons:["Lionel Messi","Luciano Spalletti","Mohamed Salah","Cristiano Ronaldo","Cristi Chivu","Massimiliano Allegri","Kylian Mbappé","Erling Haaland","Alisson Becker","Robert Lewandowski","Neymar Jr.","Carlo Ancelotti","Pep Guardiola","José Mourinho","Victor Osimhen","Lamine Yamal","Rafael Leão","Endrick","Harry Kane","Kevin De Bruyne","Vinícius Jr.","Luka Modrić","Unai Emery","Diego Simeone","Declan Rice"],competitions:["Serie A","Champions League","Africa Cup of Nations","Mondiali (World Cup)","Premier League","Serie B","LaLiga","Coppa Italia","Serie C","Europa League"],teams:["Juventus","Inter Milan","Atlético Madrid","Real Madrid","Paris Saint-Germain","Aston Villa","Manchester City","Manchester United","FC Barcelona","Inter Miami"]},
+  FR:{persons:["Kylian Mbappé","Lionel Messi","Cristiano Ronaldo","Luis Enrique","Endrick","Mohamed Salah","Antoine Griezmann","Lamine Yamal","Pep Guardiola","Vinícius Jr.","Ousmane Dembélé","José Mourinho","Unai Emery","Alexia Putellas","Neymar Jr.","Federico Valverde","Hansi Flick","Robert Lewandowski","Diego Simeone","Didier Deschamps","Declan Rice","Idriss Diallo","Jürgen Klopp","Marc-André ter Stegen","Florentino Pérez"],competitions:["Ligue des Champions","CAN (AFCON)","Ligue 1","Coupe de France","LaLiga","Premier League","Serie A","Liga Portugal","Bundesliga","Saudi Pro League"],teams:["Paris Saint-Germain","Real Madrid","Atlético Madrid","Inter Milan","FC Barcelona","Manchester City","Benfica","Manchester United","FC Porto","Juventus"]},
+  ES:{persons:["Kylian Mbappé","Álvaro Arbeloa","Diego Simeone","Florentino Pérez","Pep Guardiola","Robert Lewandowski","José Mourinho","Lamine Yamal","Hansi Flick","Marcus Rashford","Lionel Messi","Luis Enrique","Antoine Griezmann","Vinícius Jr.","Federico Valverde","Mikel Arteta","Erling Haaland","Luka Modrić","Arda Güler","Endrick","Cristiano Ronaldo","Neymar Jr.","Arne Slot","Mohamed Salah","Anthony Gordon"],competitions:["LaLiga","Champions League","Mundial (World Cup)","Premier League","Copa del Rey","Serie A","Amistosos","Conference League","Europa League","UCL Femenina"],teams:["FC Barcelona","Real Madrid","Atlético Madrid","Inter Milan","Paris Saint-Germain","Inter Miami","Manchester City","Benfica","Crystal Palace","FC Porto"]},
+  PT:{persons:["José Mourinho","Cristiano Ronaldo","Lionel Messi","Leonardo Jardim","Pep Guardiola","André Villas-Boas","Álvaro Arbeloa","Francesco Farioli","Rafael Leão","Luis Enrique","Rui Borges","Mohamed Salah","Robert Lewandowski","Lamine Yamal","Rodri","Kylian Mbappé","Arne Slot","Alisson Becker","Diego Simeone","Antoine Griezmann","Hansi Flick","Neymar Jr.","Mikel Arteta","João Félix","Mircea Lucescu"],competitions:["Liga Portugal Betclic","Liga dos Campeões","Premier League","LaLiga","Liga Portugal","Taça de Portugal","Serie A","Liga Europa","Bundesliga","Primeira Liga"],teams:["Sporting CP","FC Porto","Benfica","FC Barcelona","Inter Milan","Real Madrid","Paris Saint-Germain","Atlético Madrid","Manchester City","Al-Nassr"]},
+  BR:{persons:["Lionel Messi","Neymar Jr.","Cristiano Ronaldo","Carlo Ancelotti","Endrick","Mohamed Salah","Kylian Mbappé","Pep Guardiola","José Mourinho","Harry Kane","Leonardo Jardim","Erling Haaland","Luis Enrique","Federico Valverde","Robert Lewandowski","Lamine Yamal","Arne Slot","Rafael Leão","Hansi Flick","Vinícius Jr.","Rodri","Alisson Becker","Darwin Núñez","Jürgen Klopp","Marcus Rashford"],competitions:["Copa do Mundo","Brasileirão Betano","Premier League","Liga dos Campeões","LaLiga","Saudi Pro League","Campeonato Carioca","Ligue 1","MLS","Campeonato Paulista"],teams:["Inter Milan","Atlético Madrid","Real Madrid","FC Barcelona","Al-Nassr","São Paulo FC","Paris Saint-Germain","Al-Hilal","Manchester City","Inter Miami"]},
+  DE:{persons:["Florian Wirtz","Mohamed Salah","Julian Nagelsmann","Hansi Flick","Kylian Mbappé","Jamal Musiala","Pep Guardiola","Lionel Messi","Neymar Jr.","Marc-André ter Stegen","Lamine Yamal","Robert Lewandowski","Thomas Tuchel","Harry Kane","José Mourinho","Frank Schmidt","Erling Haaland","Cristiano Ronaldo","Ousmane Dembélé","João Félix","Jürgen Klopp","Anthony Gordon","Lukas Podolski","Rafael Leão","Jude Bellingham"],competitions:["Bundesliga","WM / World Cup","Premier League","Champions League","LaLiga","2. Bundesliga","Afrika-Cup","Serie A","Europa League","MLS"],teams:["FC Barcelona","Inter Milan","Paris Saint-Germain","Borussia Dortmund","Real Madrid","Eintracht Frankfurt","Juventus","Atlético Madrid","1. FC Heidenheim","Galatasaray"]},
+  PL:{persons:["Robert Lewandowski","Ewa Pajor","Lionel Messi","Cristiano Ronaldo","Pep Guardiola","Mohamed Salah","Harry Kane","Mikel Arteta","Kylian Mbappé","José Mourinho","Lukas Podolski","Arne Slot","Hansi Flick","Vinícius Jr.","Carlo Ancelotti","Erling Haaland","Marcus Rashford","Lamine Yamal","Neymar Jr.","Diego Simeone","Luis Enrique","Luka Modrić","Bukayo Saka","Endrick","Declan Rice"],competitions:["Premier League","LaLiga","PKO BP Ekstraklasa","Mistrzostwa Świata","Liga Portugal","Bundesliga","Puchar Polski","Serie A","MLS","Liga F (Women's)"],teams:["FC Barcelona","FC Porto","Real Madrid","Inter Milan","Atlético Madrid","Górnik Zabrze","Paris Saint-Germain","Juventus","Lech Poznań","Manchester City"]},
+  CZ:{persons:["Tomáš Koubek","Lionel Messi","Harry Kane","Cristiano Ronaldo","Ionuț Radu","Pep Guardiola","Mohamed Salah","Mikel Arteta","Hansi Flick","Declan Rice","Robert Lewandowski","Lamine Yamal","José Mourinho","Kylian Mbappé","Endrick","Federico Valverde","Thomas Tuchel","Cole Palmer","Neymar Jr.","Florian Wirtz","Vinícius Jr.","Anthony Gordon","Unai Emery","Dominik Szoboszlai","Antoine Griezmann"],competitions:["Chance Liga","Premier League","Mistrovství světa","Liga mistrů (UCL)","Bundesliga","Konferenční liga","Evropská liga","LaLiga","Ligue 1","Serie A"],teams:["AC Sparta Praha","SK Slavia Praha","Viktoria Plzeň","West Ham United","FC Barcelona","Paris Saint-Germain","Panathinaikos","Manchester City","Real Madrid","FC Porto"]},
+  SK:{persons:["Pep Guardiola","Mikel Arteta","Lionel Messi","Mohamed Salah","Harry Kane","Lamine Yamal","Kylian Mbappé","Neymar Jr.","José Mourinho","Cristiano Ronaldo","Unai Emery","Erling Haaland","Vinícius Jr.","Álvaro Arbeloa","Cristi Chivu","Ján Bobček","Antoine Griezmann","Hansi Flick","Diego Simeone","Bukayo Saka","Rodri","Vladimír Gašparík","Robert Lewandowski","Declan Rice","Arne Slot"],competitions:["Premier League","Nike Liga","Majstrovstvá sveta","LaLiga","Liga majstrov (UCL)","Serie A","Bundesliga","Chance Liga","Európska liga","MLS"],teams:["Paris Saint-Germain","FC Barcelona","Inter Milan","Juventus","Atlético Madrid","SK Slavia Praha","Real Madrid","Manchester City","West Ham United","Crystal Palace"]},
+  RO:{persons:["Cristi Chivu","Lionel Messi","Pep Guardiola","Cristiano Ronaldo","Ionuț Radu","Mohamed Salah","Mircea Lucescu","Lamine Yamal","Kylian Mbappé","Mirel Rădoi","Mikel Arteta","Luis Enrique","Erling Haaland","Marcus Rashford","José Mourinho","Neymar Jr.","Harry Kane","Robert Lewandowski","Álvaro Arbeloa","Massimiliano Allegri","Hansi Flick","Arne Slot","Thomas Tuchel","Vinícius Jr.","Endrick"],competitions:["Premier League","Superliga (Romania)","LaLiga","Cupa României","Champions League","Serie A","Liga 2","Bundesliga","MLS","Conference League"],teams:["Inter Milan","FC Barcelona","Real Madrid","Universitatea Craiova","FCSB","Manchester City","Atlético Madrid","Paris Saint-Germain","Juventus","CFR Cluj"]},
+};
+
+// ── BY CLICK VOLUME ───────────────────────────────────────────────────────
+const DATA_CLICKS = {
+  COM:{persons:["Lionel Messi","Cristiano Ronaldo","Erling Haaland","Marcus Rashford","Mohamed Salah","Carlo Ancelotti","José Mourinho","Hansi Flick","Hugo Broos","Pep Guardiola","Neymar Jr.","Kylian Mbappé","Mikel Arteta","Victor Osimhen","Didier Deschamps","Thomas Tuchel","Luis Enrique","Arne Slot","Federico Valverde","Bukayo Saka","Harry Kane","Declan Rice","Endrick","Álvaro Arbeloa","Unai Emery"],competitions:["World Cup","Premier League","Betway Premiership (SA)","LaLiga","Africa Cup of Nations","CAF Champions League","Champions League","Saudi Pro League","Serie A","MLS"],teams:["Bafana Bafana (SA NT)","Mamelodi Sundowns","Arsenal","Kaizer Chiefs","Manchester City","Orlando Pirates","Liverpool","Al-Nassr","Real Madrid","FC Barcelona"]},
+  UK:{persons:["Thomas Tuchel","Bukayo Saka","Declan Rice","Victor Osimhen","Harry Kane","Mohamed Salah","Cristiano Ronaldo","Kylian Mbappé","Pep Guardiola","José Mourinho","Arne Slot","Mikel Arteta","Lionel Messi","Robert Lewandowski","Carlo Ancelotti","Antoine Griezmann","Marcus Rashford","Erling Haaland","Virgil van Dijk","Federico Valverde","Rodri","Jürgen Klopp","Ange Postecoglou","Florian Wirtz","Ousmane Dembélé"],competitions:["World Cup","Premier League","Süper Lig","Africa Cup of Nations","EFL Championship","Champions League","Bundesliga","LaLiga","MLS","Eredivisie"],teams:["Arsenal","Chelsea","Manchester City","Manchester United","Crystal Palace","FC Barcelona","Liverpool","Sporting CP","Inter Milan","Feyenoord"]},
+  IT:{persons:["Cristiano Ronaldo","Carlo Ancelotti","Lionel Messi","Jude Bellingham","Mohamed Salah","Luciano Spalletti","Harry Kane","Erling Haaland","Robert Lewandowski","Neymar Jr.","Endrick","Karim Benzema","Alisson Becker","Kylian Mbappé","Massimiliano Allegri","Cristi Chivu","Pep Guardiola","Kevin De Bruyne","José Mourinho","Victor Osimhen","Florentino Pérez","Luka Modrić","Vinícius Jr.","Diego Simeone","Rafael Leão"],competitions:["Serie A","Africa Cup of Nations","Champions League","Premier League","Mondiali (World Cup)","Serie B","LaLiga","Coppa Italia","Serie C","Europa League"],teams:["Juventus","Napoli","AS Roma","Inter Milan","Galatasaray","Real Madrid","Fiorentina","Atalanta","Tottenham Hotspur","Manchester United"]},
+  FR:{persons:["Idriss Diallo","Cristiano Ronaldo","Lionel Messi","Carlo Ancelotti","Kylian Mbappé","Antoine Griezmann","Karim Benzema","Endrick","Alexia Putellas","Robert Lewandowski","Victor Osimhen","Vinícius Jr.","Lamine Yamal","Álvaro Arbeloa","Diego Simeone","Neymar Jr.","Mohamed Salah","Pep Guardiola","Federico Valverde","Jürgen Klopp","Marcus Rashford","Marc-André ter Stegen","Rodri","Jude Bellingham","Unai Emery"],competitions:["CAN (AFCON)","Coupe de France","Ligue des Champions","LaLiga","Amical International","Saudi Pro League","Ligue 1","Premier League","Liga F (Women's)","Copa América"],teams:["FC Barcelona","Real Madrid","Atlético Madrid","Al-Nassr","Paris Saint-Germain","Manchester United","Al-Hilal","Arsenal","Chelsea","Real Sociedad"]},
+  ES:{persons:["Lionel Messi","Florentino Pérez","Arda Güler","Pep Guardiola","Alexia Putellas","Rafael Leão","Álvaro Arbeloa","Kylian Mbappé","Luis Enrique","Federico Valverde","Endrick","Robert Lewandowski","José Mourinho","Vinícius Jr.","Carlo Ancelotti","Lamine Yamal","Marcus Rashford","Hansi Flick","Mikel Arteta","Arne Slot","Diego Simeone","Cristiano Ronaldo","Bukayo Saka","Erling Haaland","Neymar Jr."],competitions:["LaLiga","Premier League","Champions League","Mundial (World Cup)","MLS","FA Cup","Amistosos","Liga Portugal","UCL Femenina","Copa del Rey"],teams:["Real Madrid","FC Barcelona","Arsenal","Inter Milan","Inter Miami","Chelsea","Paris Saint-Germain","Espanyol","Atlético Madrid","Real Betis"]},
+  PT:{persons:["José Mourinho","João Félix","Francesco Farioli","Cristiano Ronaldo","Darwin Núñez","Mohamed Salah","Mircea Lucescu","Unai Emery","Rafael Leão","Pep Guardiola","Leonardo Jardim","Alisson Becker","André Villas-Boas","Diego Simeone","Luis Enrique","Florentino Pérez","Lionel Messi","Marcus Rashford","Massimiliano Allegri","Robert Lewandowski","Antoine Griezmann","Álvaro Arbeloa","Hansi Flick","Rui Borges","Cole Palmer"],competitions:["Premier League","Liga Portugal Betclic","Serie A","Primeira Liga","Liga dos Campeões","LaLiga","Bundesliga","Finalissima","Liga 3","Liga Portugal"],teams:["Newcastle United","FC Porto","FC Barcelona","Palmeiras","Liverpool","Sporting CP","Benfica","Fenerbahçe","Manchester City","SC Braga"]},
+  BR:{persons:["Endrick","Lionel Messi","Lamine Yamal","Darwin Núñez","Erling Haaland","Cristiano Ronaldo","Kylian Mbappé","Carlo Ancelotti","Jürgen Klopp","Harry Kane","Mohamed Salah","José Mourinho","Arda Güler","Arne Slot","Neymar Jr.","Pep Guardiola","Hansi Flick","Luis Enrique","Federico Valverde","Marcus Rashford","Leonardo Jardim","Phil Foden","Julian Nagelsmann","Rafael Leão","Ousmane Dembélé"],competitions:["Copa do Mundo","Brasileirão Betano","Copa do Brasil","Premier League","Ligue 1","Saudi Pro League","LaLiga","MLS","Liga dos Campeões","Campeonato Carioca"],teams:["Chapecoense","Inter Milan","FC Barcelona","Al-Nassr","Liverpool","Inter Miami","Real Madrid","Flamengo","Chelsea","Palmeiras"]},
+  DE:{persons:["Florian Wirtz","Arne Slot","Frank Schmidt","Robert Lewandowski","Kylian Mbappé","Lamine Yamal","Erling Haaland","Thomas Tuchel","Hansi Flick","Ewa Pajor","Mircea Lucescu","Harry Kane","Julian Nagelsmann","Neymar Jr.","Rafael Leão","Lionel Messi","Mohamed Salah","Pep Guardiola","Cristiano Ronaldo","José Mourinho","Jamal Musiala","Jude Bellingham","Ousmane Dembélé","Jürgen Klopp","João Félix"],competitions:["Premier League","Bundesliga","Champions League","LaLiga","WM / World Cup","Afrika-Cup","Serie A","FA Cup","Süper Lig","2. Bundesliga"],teams:["Liverpool","1. FC Heidenheim","FC Barcelona","Real Madrid","Arsenal","Juventus","Newcastle United","Bayer Leverkusen","AC Milan","Borussia Dortmund"]},
+  PL:{persons:["Ewa Pajor","Robert Lewandowski","Lukas Podolski","Harry Kane","Cristiano Ronaldo","Lionel Messi","Pep Guardiola","Hansi Flick","Lamine Yamal","Kylian Mbappé","Diego Simeone","Mikel Arteta","José Mourinho","Erling Haaland","Mohamed Salah","Arne Slot","Luis Enrique","Vladimír Gašparík","Pedri","Darwin Núñez","Carlo Ancelotti","Luka Modrić","Álvaro Arbeloa","Ján Bobček","Jude Bellingham"],competitions:["LaLiga","Premier League","Liga Portugal","Liga F (Women's)","Mistrzostwa Świata","PKO BP Ekstraklasa","Bundesliga","Puchar Polski","Saudi Pro League","Serie A"],teams:["FC Porto","FC Barcelona","Atlético Madrid","Al-Nassr","Arsenal","SC Braga","Inter Milan","Chelsea","Górnik Zabrze","Manchester United"]},
+  CZ:{persons:["Tomáš Koubek","Mikel Arteta","Cristiano Ronaldo","Robert Lewandowski","Pep Guardiola","José Mourinho","Hansi Flick","Lionel Messi","Florian Wirtz","Thomas Tuchel","Endrick","Phil Foden","Dominik Szoboszlai","Kylian Mbappé","Lamine Yamal","Cole Palmer","Federico Valverde","Álvaro Arbeloa","Harry Kane","Arne Slot","Mohamed Salah","Neymar Jr.","Unai Emery","Diego Simeone","Ousmane Dembélé"],competitions:["Chance Liga","Premier League","Mistrovství světa","Konferenční liga","Liga mistrů (UCL)","Evropská liga","Ligue 1","Bundesliga","LaLiga","EFL Championship"],teams:["AC Sparta Praha","SK Slavia Praha","Viktoria Plzeň","West Ham United","Baník Ostrava","Tottenham Hotspur","Arsenal","Chelsea","Bayer Leverkusen","FC Barcelona"]},
+  SK:{persons:["Vladimír Gašparík","Ján Bobček","Pep Guardiola","Mikel Arteta","Hansi Flick","Antoine Griezmann","Robert Lewandowski","Álvaro Arbeloa","Bukayo Saka","Harry Kane","Neymar Jr.","Mohamed Salah","Lionel Messi","Cristiano Ronaldo","José Mourinho","Arne Slot","Luka Modrić","Lamine Yamal","Luciano Spalletti","Declan Rice","Erling Haaland","Diego Simeone","Unai Emery","Ousmane Dembélé","Thomas Tuchel"],competitions:["Nike Liga","Premier League","LaLiga","Liga majstrov (UCL)","Majstrovstvá sveta","Chance Liga","Serie A","Medzištátne zápasy","Bundesliga","EFL Championship"],teams:["Atlético Madrid","Arsenal","Górnik Zabrze","FC Barcelona","Liverpool","SK Slavia Praha","AC Sparta Praha","Chelsea","Feyenoord","Inter Milan"]},
+  RO:{persons:["Lionel Messi","Cristi Chivu","Pep Guardiola","Lamine Yamal","Cristiano Ronaldo","Mircea Lucescu","Harry Kane","Mohamed Salah","Ionuț Radu","Mirel Rădoi","Elias Charalambous","Erling Haaland","Luis Enrique","Carlo Ancelotti","Kylian Mbappé","Mikel Arteta","Neymar Jr.","Robert Lewandowski","Álvaro Arbeloa","Hansi Flick","Marcus Rashford","Anthony Gordon","Arne Slot","José Mourinho","Didier Deschamps"],competitions:["Premier League","LaLiga","Superliga (Romania)","Cupa României","Serie A","Champions League","MLS","Bundesliga","FA Cup","Liga 2"],teams:["Inter Milan","Manchester City","FC Barcelona","Universitatea Craiova","Real Madrid","Tottenham Hotspur","FCSB","Arsenal","Liverpool","Inter Miami"]},
+};
+
+// ── BY CONTENT ANALYSIS (actual article text, top 100 articles by clicks) ─
+// Note: non-English markets show fewer persons due to language — names that differ from English spellings may not be detected.
+const DATA_CONTENT = {
+  COM:{persons:["Lionel Messi","Cristiano Ronaldo","Erling Haaland","Marcus Rashford","Mohamed Salah","Stan Collymore","Kylian Mbappé","Vinícius Jr.","José Mourinho","Hansi Flick","Carlo Ancelotti","Pep Guardiola","Raphinha","Neymar Jr.","Florentino Pérez","Hugo Broos","Victor Osimhen","Didier Deschamps","Eduardo Camavinga","Federico Valverde","Aurélien Tchouaméni"],competitions:["World Cup","Champions League","Europa League","Premier League","EFL Championship","Africa Cup of Nations","Betway Premiership (SA)","CAF Champions League","MLS","Bundesliga"],teams:["Mamelodi Sundowns","Bafana Bafana (SA NT)","Kaizer Chiefs","Arsenal","Al-Nassr","Liverpool","FC Barcelona","Tottenham Hotspur","Manchester City","Everton"]},
+  UK:{persons:["Trent Alexander-Arnold","Thomas Tuchel","Noni Madueke","Bukayo Saka","Victor Osimhen","Harry Kane","Wenger","Cristiano Ronaldo","Mohamed Salah","Kylian Mbappé","José Mourinho","Pep Guardiola","Mikel Arteta","Lionel Messi","Robert Lewandowski","Antoine Griezmann","Marcus Rashford","Carlo Ancelotti","Virgil van Dijk","Federico Valverde","Aurélien Tchouaméni","Jürgen Klopp","Erling Haaland","Florian Wirtz","Ange Postecoglou"],competitions:["World Cup","Premier League","EFL Championship","Africa Cup of Nations","Champions League","Serie A","FA Cup","Bundesliga","Ligue 1"],teams:["Arsenal","Chelsea","Bayern Munich","Crystal Palace","Feyenoord","Inter Milan","Inter Miami","FC Barcelona","Manchester United","Benfica"]},
+  IT:{persons:["Carlo Ancelotti","Cristiano Ronaldo","Jude Bellingham","Zlatan Ibrahimović","Karim Benzema","Alisson Becker","Robert Lewandowski","Zinedine Zidane"],competitions:["Serie A","Africa Cup of Nations","Champions League","Serie B","Conference League","Copa del Rey"],teams:["Juventus","Napoli","AS Roma","Atalanta","AC Milan","Galatasaray","Manchester United","Fiorentina","Paris Saint-Germain","Tottenham Hotspur"]},
+  FR:{persons:["Idriss Diallo","Emerse Faé","Cristiano Ronaldo","Lionel Messi","Carlo Ancelotti","Karim Benzema","Antoine Griezmann","Kylian Mbappé","Victor Osimhen","Alexia Putellas","Robert Lewandowski","Álvaro Arbeloa","Endrick","Lamine Yamal","Raphinha","Neymar Jr.","Vinícius Jr.","Diego Simeone","Jürgen Klopp"],competitions:["Ligue 1","Africa Cup of Nations","Liga F","Saudi Pro League","MLS","Copa del Rey","Premier League","Coupe de France","Liga Portugal","LaLiga"],teams:["FC Barcelona","Real Madrid","Atlético Madrid","Al-Nassr","Paris Saint-Germain","Al-Hilal","Manchester United","Bayern Munich","Real Sociedad","Tottenham Hotspur"]},
+  ES:{persons:["Lionel Messi","Arda Güler","Alexia Putellas","Rafael Leão","Diego Simeone","Luis Enrique","Endrick","Federico Valverde","Robert Lewandowski","Vinícius Jr.","José Mourinho","Carlo Ancelotti","Lamine Yamal","Marcus Rashford","Álvaro Arbeloa","Mikel Arteta","Kylian Mbappé","Didier Deschamps","Jude Bellingham","Hansi Flick","Neymar Jr.","Raphinha","Arne Slot","Erling Haaland","Julian Nagelsmann"],competitions:["World Cup","LaLiga","MLS","FA Cup","Champions League","Copa del Rey","Ligue 1","Conference League","Premier League","Europa League"],teams:["Arsenal","Real Madrid","Inter Milan","FC Barcelona","Chelsea","Paris Saint-Germain","Manchester City","Real Betis","Sevilla","Bayern Munich"]},
+  PT:{persons:["José Mourinho","Francesco Farioli","João Félix","Darwin Núñez","Cristiano Ronaldo","Mohamed Salah","Mircea Lucescu","Leonardo Jardim","Rafael Leão","Alisson Becker","Pep Guardiola","Marcus Rashford","Diego Simeone","Florentino Pérez","Antoine Griezmann","Luis Enrique","Massimiliano Allegri","André Villas-Boas","Lukas Podolski"],competitions:["World Cup","Liga Portugal","Bundesliga","Premier League","LaLiga","Eredivisie","Ligue 1","Africa Cup of Nations","EFL Championship"],teams:["Newcastle United","FC Barcelona","Palmeiras","FC Porto","Liverpool","Bayern Munich","Fenerbahçe","Sporting CP","Paris Saint-Germain","Benfica"]},
+  BR:{persons:["Endrick","Lionel Messi","Cristiano Ronaldo","Lamine Yamal","Darwin Núñez","Erling Haaland","Kylian Mbappé","Jürgen Klopp","Harry Kane","Arne Slot","Marcus Rashford","Luis Enrique","José Mourinho"],competitions:["Ligue 1","MLS","Brasileirão","Premier League","World Cup","Bundesliga","LaLiga","Saudi Pro League","Champions League"],teams:["Chapecoense","Inter Milan","Inter Miami","FC Barcelona","Real Madrid","Liverpool","Chelsea","Flamengo","Al-Nassr","Bayern Munich"]},
+  DE:{persons:["Florian Wirtz","Robert Lewandowski","Kylian Mbappé","Lamine Yamal","Erling Haaland","Trent Alexander-Arnold","Thomas Tuchel","Ewa Pajor","Hansi Flick","Mircea Lucescu","Harry Kane","Julian Nagelsmann","Rafael Leão","Neymar Jr.","Zlatan Ibrahimović","Lionel Messi","Mohamed Salah","Cristiano Ronaldo","Zinedine Zidane","Pep Guardiola","Raphinha"],competitions:["World Cup","Bundesliga","Africa Cup of Nations","Premier League","Champions League","FA Cup","MLS"],teams:["Liverpool","1. FC Heidenheim","FC Barcelona","Bayern Munich","Paris Saint-Germain","Real Madrid","Arsenal","Borussia Dortmund","Juventus","Tottenham Hotspur"]},
+  PL:{persons:["Ewa Pajor","Lukas Podolski","Robert Lewandowski","Harry Kane","Cristiano Ronaldo","Raphinha","Lionel Messi","Diego Simeone","Lamine Yamal","Luis Enrique","Erling Haaland","Vladimír Gašparík","Mohamed Salah","Kylian Mbappé","Xavi","Zlatan Ibrahimović"],competitions:["World Cup","PKO BP Ekstraklasa","LaLiga"],teams:["FC Porto","FC Barcelona","Bayern Munich","Atlético Madrid","Al-Nassr","Al-Hilal","Górnik Zabrze","Paris Saint-Germain","Sporting CP","Newcastle United"]},
+  CZ:{persons:["Tomáš Koubek","Florian Wirtz","Endrick","Phil Foden"],competitions:["Champions League","Premier League","Chance Liga"],teams:["AC Sparta Praha","Viktoria Plzeň","SK Slavia Praha","Panathinaikos","West Ham United","Bayern Munich","Benfica","Baník Ostrava","Universitatea Craiova","Bayer Leverkusen"]},
+  SK:{persons:["Vladimír Gašparík","Ján Bobček","Hansi Flick","Antoine Griezmann","Bukayo Saka","Robert Lewandowski","Harry Kane","Luciano Spalletti","Neymar Jr.","Mikel Arteta","Mohamed Salah","Álvaro Arbeloa","Cristiano Ronaldo","José Mourinho","Unai Emery"],competitions:["Champions League","Nike Liga","Premier League","Copa del Rey","EFL Championship"],teams:["Górnik Zabrze","Atlético Madrid","Bayern Munich","Arsenal","Liverpool","AC Sparta Praha","Feyenoord","Paris Saint-Germain","SK Slavia Praha","Aston Villa"]},
+  RO:{persons:["Lionel Messi","Lamine Yamal","Cristi Chivu","Cristiano Ronaldo","Mircea Lucescu","Harry Kane","Pep Guardiola","Elias Charalambous","Mirel Rădoi","Mohamed Salah","Kylian Mbappé","Carlo Ancelotti","Erling Haaland","Ionuț Radu","Robert Lewandowski","Neymar Jr.","Luis Enrique","Mikel Arteta","Anthony Gordon","Álvaro Arbeloa","Didier Deschamps","Arne Slot"],competitions:["World Cup","Superliga (Romania)","Champions League","MLS","Serie A","Premier League","Conference League","Europa League","LaLiga","Eredivisie"],teams:["Inter Milan","Manchester City","Universitatea Craiova","Tottenham Hotspur","FCSB","Inter Miami","Bayern Munich","FC Barcelona","Real Madrid","Paris Saint-Germain"]},
+};
+
+const panelModes = {};
+
+function getData(id, mode) {
+  if (mode === 'content' && DATA_CONTENT[id]) return DATA_CONTENT[id];
+  return (mode === 'clicks' ? DATA_CLICKS : DATA_COUNT)[id];
+}
+
+function getRankChange(name, cList, kList) {
+  const pc = cList.indexOf(name), pk = kList.indexOf(name);
+  if (pc === -1 || pk === -1) return '';
+  const d = pc - pk;
+  if (d > 0) return '<span class="rank-moved moved-up" title="#'+(pc+1)+' by articles → #'+(pk+1)+' by clicks">▲'+d+'</span>';
+  if (d < 0) return '<span class="rank-moved moved-down" title="#'+(pc+1)+' by articles → #'+(pk+1)+' by clicks">▼'+Math.abs(d)+'</span>';
+  return '<span class="rank-moved moved-same">–</span>';
+}
+
+function renderList(items, type, mode, id) {
+  const max = type === 'persons' ? 25 : 10;
+  const cList = DATA_COUNT[id][type], kList = DATA_CLICKS[id][type];
+  return items.slice(0, max).map(function(name, i) {
+    const mv = mode === 'clicks' ? getRankChange(name, cList, kList) : '';
+    return '<div class="rank-item"><div class="rank-num '+(i<3?'top3':'')+'">'+(i+1)+'</div><div class="rank-name">'+name+mv+'</div></div>';
+  }).join('');
+}
+
+function buildPanel(id) {
+  const m = MARKETS[id];
+  const div = document.createElement('div');
+  div.id = 'panel-' + id;
+  div.className = 'market-panel';
+  panelModes[id] = 'count';
+  div.innerHTML =
+    '<div class="market-title">'+m.flag+' '+m.name+'</div>'+
+    '<p class="market-subtitle">Top entities from the last 6 months of Google Discover traffic</p>'+
+    '<div class="toggle-wrap">'+
+      '<span class="toggle-label">Ranking method:</span>'+
+      '<div class="toggle-group">'+
+        '<button class="toggle-btn active" onclick="setMode(\''+id+'\',\'count\',this)">By article count</button>'+
+        '<button class="toggle-btn" onclick="setMode(\''+id+'\',\'clicks\',this)">By click volume</button>'+
+        '<button class="toggle-btn" onclick="setMode(\''+id+'\',\'content\',this)">By content analysis</button>'+
+      '</div>'+
+      '<span class="mode-note" id="note-'+id+'"></span>'+
+    '</div>'+
+    '<div class="grid-3">'+
+      '<div class="card"><div class="card-header"><div class="card-icon people">👤</div><div class="card-title">Players &amp; Coaches (Top 25)</div></div><div class="rank-list" id="persons-'+id+'"></div></div>'+
+      '<div class="card"><div class="card-header"><div class="card-icon comps">🏆</div><div class="card-title">Competitions (Top 10)</div></div><div class="rank-list" id="comps-'+id+'"></div></div>'+
+      '<div class="card"><div class="card-header"><div class="card-icon teams">⚽</div><div class="card-title">Teams (Top 10)</div></div><div class="rank-list" id="teams-'+id+'"></div></div>'+
+    '</div>';
+  return div;
+}
+
+function refreshPanel(id, mode) {
+  const d = getData(id, mode);
+  document.getElementById('persons-'+id).innerHTML = renderList(d.persons, 'persons', mode, id);
+  document.getElementById('comps-'+id).innerHTML = renderList(d.competitions, 'competitions', mode, id);
+  document.getElementById('teams-'+id).innerHTML = renderList(d.teams, 'teams', mode, id);
+  const note = document.getElementById('note-'+id);
+  if (note) {
+    if (mode === 'clicks') note.textContent = '▲▼ = change vs. article count ranking';
+    else if (mode === 'content') note.textContent = '📄 From actual article text — top 100 articles by clicks';
+    else note.textContent = '';
+  }
+}
+
+function setMode(id, mode, btn) {
+  panelModes[id] = mode;
+  btn.closest('.toggle-group').querySelectorAll('.toggle-btn').forEach(function(b){ b.classList.remove('active'); });
+  btn.classList.add('active');
+  refreshPanel(id, mode);
+}
+
+function buildSummary() {
+  const grid = document.getElementById('summary-grid');
+  Object.entries(MARKETS).forEach(function(entry) {
+    const id = entry[0], m = entry[1], d = DATA_COUNT[id];
+    const card = document.createElement('div');
+    card.className = 'summary-card';
+    card.onclick = function(){ showMarket(id); };
+    card.innerHTML = '<h3>'+m.flag+' '+m.name+'</h3>'+
+      '<div class="summary-top">Top players / coaches</div><div class="summary-names">'+d.persons.slice(0,5).join(', ')+'</div>'+
+      '<div class="summary-top" style="margin-top:7px;">Top competitions</div><div class="summary-names">'+d.competitions.slice(0,3).join(', ')+'</div>'+
+      '<div class="summary-top" style="margin-top:7px;">Top teams</div><div class="summary-names">'+d.teams.slice(0,4).join(', ')+'</div>';
+    grid.appendChild(card);
+  });
+}
+
+const panelsContainer = document.getElementById('market-panels');
+Object.keys(MARKETS).forEach(function(id) {
+  const p = buildPanel(id);
+  panelsContainer.appendChild(p);
+  refreshPanel(id, 'count');
+});
+buildSummary();
+
+function showMarket(id) {
+  document.getElementById('summary-panel').classList.remove('active');
+  document.querySelectorAll('.market-panel').forEach(function(p){ p.classList.remove('active'); });
+  document.querySelectorAll('.market-btn').forEach(function(b){ b.classList.remove('active'); });
+  document.getElementById('search-results').style.display = 'none';
+  document.getElementById('global-search').value = '';
+  document.getElementById('search-results-count').textContent = '';
+  if (id === 'summary') {
+    document.getElementById('summary-panel').classList.add('active');
+    document.querySelector('.market-btn').classList.add('active');
+  } else {
+    document.getElementById('panel-'+id).classList.add('active');
+    document.querySelectorAll('.market-btn').forEach(function(b){
+      if (b.getAttribute('onclick') === "showMarket('"+id+"')") b.classList.add('active');
+    });
+  }
+}
+
+function globalSearch(q) {
+  q = q.trim().toLowerCase();
+  const rd = document.getElementById('search-results'), ce = document.getElementById('search-results-count');
+  if (q.length < 2) { rd.style.display='none'; ce.textContent=''; return; }
+  const hits = {};
+  Object.entries(DATA_COUNT).forEach(function(entry) {
+    const mid = entry[0], d = entry[1];
+    const pm = d.persons.filter(function(p){ return p.toLowerCase().includes(q); });
+    const cm = d.competitions.filter(function(c){ return c.toLowerCase().includes(q); });
+    const tm = d.teams.filter(function(t){ return t.toLowerCase().includes(q); });
+    if (pm.length||cm.length||tm.length) hits[mid]={m:MARKETS[mid],pm:pm,cm:cm,tm:tm};
+  });
+  if (!Object.keys(hits).length) { rd.innerHTML='<p style="color:var(--muted);font-size:.83rem;">No matches found.</p>'; rd.style.display='block'; ce.textContent=''; return; }
+  ce.textContent='Found in '+Object.keys(hits).length+' market(s)';
+  let html='<div style="display:flex;flex-wrap:wrap;gap:10px;">';
+  Object.entries(hits).forEach(function(entry) {
+    const mid = entry[0], h = entry[1];
+    let items=[];
+    if (h.pm.length) items.push('<span class="pill">👤 '+h.pm.join(', ')+'</span>');
+    if (h.cm.length) items.push('<span class="pill" style="background:#d1fae5;color:#065f46;">🏆 '+h.cm.join(', ')+'</span>');
+    if (h.tm.length) items.push('<span class="pill" style="background:#dbeafe;color:#1e40af;">⚽ '+h.tm.join(', ')+'</span>');
+    html+='<div style="background:white;border:1px solid var(--border);border-radius:9px;padding:12px 16px;min-width:220px;cursor:pointer;" onclick="showMarket(\''+mid+'\')">'+
+      '<div style="font-weight:600;margin-bottom:7px;font-size:0.85rem;">'+h.m.flag+' '+h.m.name.split('—')[0].trim()+'</div>'+
+      '<div style="display:flex;flex-wrap:wrap;gap:5px;">'+items.join('')+'</div></div>';
+  });
+  html+='</div>';
+  rd.innerHTML=html; rd.style.display='block';
+}
+</script>
+</body>
+</html>
